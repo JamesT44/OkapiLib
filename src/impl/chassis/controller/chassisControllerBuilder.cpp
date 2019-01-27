@@ -27,8 +27,36 @@ ChassisControllerBuilder &
 ChassisControllerBuilder::withMotors(const std::shared_ptr<AbstractMotor> &ileft,
                                      const std::shared_ptr<AbstractMotor> &iright) {
   hasMotors = true;
-  isSkidSteer = true;
+  driveType = 0;
   skidSteerMotors = {ileft, iright};
+
+  if (!sensorsSetByUser) {
+    leftSensor = ileft->getEncoder();
+    rightSensor = iright->getEncoder();
+  }
+
+  return *this;
+}
+
+ChassisControllerBuilder &ChassisControllerBuilder::withMotors(const Motor &ileft,
+                                                               const Motor &imiddle,
+                                                               const Motor &iright) {
+  return withMotors(std::make_shared<Motor>(ileft), std::make_shared<Motor>(imiddle), std::make_shared<Motor>(iright));
+}
+
+ChassisControllerBuilder &ChassisControllerBuilder::withMotors(const MotorGroup &ileft,
+                                                               const MotorGroup &imiddle,
+                                                               const MotorGroup &iright) {
+  return withMotors(std::make_shared<MotorGroup>(ileft), std::make_shared<MotorGroup>(imiddle), std::make_shared<MotorGroup>(iright));
+}
+
+ChassisControllerBuilder &
+ChassisControllerBuilder::withMotors(const std::shared_ptr<AbstractMotor> &ileft,
+                                     const std::shared_ptr<AbstractMotor> &imiddle,
+                                     const std::shared_ptr<AbstractMotor> &iright) {
+  hasMotors = true;
+  driveType = 1;
+  trikeDriveMotors = {ileft, imiddle, iright};
 
   if (!sensorsSetByUser) {
     leftSensor = ileft->getEncoder();
@@ -64,7 +92,7 @@ ChassisControllerBuilder::withMotors(const std::shared_ptr<AbstractMotor> &itopL
                                      const std::shared_ptr<AbstractMotor> &ibottomRight,
                                      const std::shared_ptr<AbstractMotor> &ibottomLeft) {
   hasMotors = true;
-  isSkidSteer = false;
+  driveType = 2;
   xDriveMotors = {itopLeft, itopRight, ibottomRight, ibottomLeft};
 
   if (!sensorsSetByUser) {
@@ -175,10 +203,25 @@ std::shared_ptr<ChassisController> ChassisControllerBuilder::build() {
 }
 
 std::shared_ptr<ChassisControllerPID> ChassisControllerBuilder::buildCCPID() {
-  if (isSkidSteer) {
+  if (driveType == 0) {
     auto out = std::make_shared<ChassisControllerPID>(
       TimeUtilFactory::create(),
       makeSkidSteerModel(),
+      std::make_unique<IterativePosPIDController>(
+        distanceGains, controllerTimeUtilFactory.create(), std::move(distanceFilter)),
+      std::make_unique<IterativePosPIDController>(
+        angleGains, controllerTimeUtilFactory.create(), std::move(angleFilter)),
+      std::make_unique<IterativePosPIDController>(
+        turnGains, controllerTimeUtilFactory.create(), std::move(turnFilter)),
+      gearset,
+      scales,
+      controllerLogger);
+    out->startThread();
+    return out;
+  } else if (driveType == 1) {
+    auto out = std::make_shared<ChassisControllerPID>(
+      TimeUtilFactory::create(),
+      makeTrikeDriveModel(),
       std::make_unique<IterativePosPIDController>(
         distanceGains, controllerTimeUtilFactory.create(), std::move(distanceFilter)),
       std::make_unique<IterativePosPIDController>(
@@ -209,7 +252,7 @@ std::shared_ptr<ChassisControllerPID> ChassisControllerBuilder::buildCCPID() {
 }
 
 std::shared_ptr<ChassisControllerIntegrated> ChassisControllerBuilder::buildCCI() {
-  if (isSkidSteer) {
+  if (driveType == 0) {
     auto out = std::make_shared<ChassisControllerIntegrated>(
       TimeUtilFactory::create(),
       makeSkidSteerModel(),
@@ -218,6 +261,22 @@ std::shared_ptr<ChassisControllerIntegrated> ChassisControllerBuilder::buildCCI(
                                                      toUnderlyingType(gearset.internalGearset),
                                                      controllerTimeUtilFactory.create()),
       std::make_unique<AsyncPosIntegratedController>(skidSteerMotors.right,
+                                                     gearset,
+                                                     toUnderlyingType(gearset.internalGearset),
+                                                     controllerTimeUtilFactory.create()),
+      gearset,
+      scales,
+      controllerLogger);
+    return out;
+  } else if (driveType == 1) {
+    auto out = std::make_shared<ChassisControllerIntegrated>(
+      TimeUtilFactory::create(),
+      makeTrikeDriveModel(),
+      std::make_unique<AsyncPosIntegratedController>(trikeDriveMotors.left,
+                                                     gearset,
+                                                     toUnderlyingType(gearset.internalGearset),
+                                                     controllerTimeUtilFactory.create()),
+      std::make_unique<AsyncPosIntegratedController>(trikeDriveMotors.right,
                                                      gearset,
                                                      toUnderlyingType(gearset.internalGearset),
                                                      controllerTimeUtilFactory.create()),
@@ -247,6 +306,11 @@ std::shared_ptr<ChassisControllerIntegrated> ChassisControllerBuilder::buildCCI(
 std::shared_ptr<SkidSteerModel> ChassisControllerBuilder::makeSkidSteerModel() {
   return std::make_shared<SkidSteerModel>(
     skidSteerMotors.left, skidSteerMotors.right, leftSensor, rightSensor, maxVelocity, maxVoltage);
+}
+
+std::shared_ptr<TrikeDriveModel> ChassisControllerBuilder::makeTrikeDriveModel() {
+  return std::make_shared<TrikeDriveModel>(
+    trikeDriveMotors.left, trikeDriveMotors.middle, trikeDriveMotors.right, leftSensor, rightSensor, maxVelocity, maxVoltage);
 }
 
 std::shared_ptr<XDriveModel> ChassisControllerBuilder::makeXDriveModel() {

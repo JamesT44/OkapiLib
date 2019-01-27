@@ -9,6 +9,7 @@
 
 #include "okapi/api/chassis/model/skidSteerModel.hpp"
 #include "okapi/api/chassis/model/threeEncoderSkidSteerModel.hpp"
+#include "okapi/api/chassis/model/trikeDriveModel.hpp"
 #include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/impl/device/motor/motor.hpp"
 #include "okapi/impl/device/motor/motorGroup.hpp"
@@ -58,6 +59,59 @@ class ChassisModelFactory {
    * @param irightSideMotor right side motor
    */
   static SkidSteerModel create(MotorGroup ileftSideMotor,
+                               MotorGroup irightSideMotor,
+                               ADIEncoder ileftEnc,
+                               ADIEncoder irightEnc,
+                               double imaxVelocity,
+                               double imaxVoltage = 12000);
+
+  /**
+   * Model for a trike drive (wheels parallel with robot's direction of motion). When all
+   * motors are powered +127, the robot should move forward in a straight line.
+   *
+   * This constructor infers the two sensors from the left and right motors (using the integrated
+   * encoders).
+   *
+   * @param ileftSideMotor left side motor
+   * @param imiddleSideMotor right side motor
+   * @param irightSideMotor right side motor
+   */
+  static TrikeDriveModel create(Motor ileftSideMotor,
+                               Motor imiddleSideMotor,
+                               Motor irightSideMotor,
+                               double imaxVelocity,
+                               double imaxVoltage = 12000);
+
+  /**
+   * Model for a trike drive (wheels parallel with robot's direction of motion). When all
+   * motors are powered +127, the robot should move forward in a straight line.
+   *
+   * This constructor infers the two sensors from the left and right motors (using the integrated
+   * encoders).
+   *
+   * @param ileftSideMotor left side motor
+   * @param imiddleSideMotor right side motor
+   * @param irightSideMotor right side motor
+   */
+  static TrikeDriveModel create(MotorGroup ileftSideMotor,
+                               MotorGroup imiddleSideMotor,
+                               MotorGroup irightSideMotor,
+                               double imaxVelocity,
+                               double imaxVoltage = 12000);
+
+  /**
+   * Model for a trike drive (wheels parallel with robot's direction of motion). When all
+   * motors are powered +127, the robot should move forward in a straight line.
+   *
+   * This constructor infers the two sensors from the left and right motors (using the integrated
+   * encoders).
+   *
+   * @param ileftSideMotor left side motor
+   * @param imiddleSideMotor right side motor
+   * @param irightSideMotor right side motor
+   */
+  static TrikeDriveModel create(MotorGroup ileftSideMotor,
+                               MotorGroup imiddleSideMotor,
                                MotorGroup irightSideMotor,
                                ADIEncoder ileftEnc,
                                ADIEncoder irightEnc,

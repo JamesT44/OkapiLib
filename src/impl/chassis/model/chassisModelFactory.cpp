@@ -42,6 +42,46 @@ SkidSteerModel ChassisModelFactory::create(MotorGroup ileftSideMotor,
                         imaxVoltage);
 }
 
+TrikeDriveModel ChassisModelFactory::create(Motor ileftSideMotor,
+                                           Motor imiddleSideMotor,
+                                           Motor irightSideMotor,
+                                           const double imaxVelocity,
+                                           const double imaxVoltage) {
+  return TrikeDriveModel(std::make_shared<Motor>(ileftSideMotor),
+                        std::make_shared<Motor>(imiddleSideMotor),
+                        std::make_shared<Motor>(irightSideMotor),
+                        imaxVelocity,
+                        imaxVoltage);
+}
+
+TrikeDriveModel ChassisModelFactory::create(MotorGroup ileftSideMotor,
+                                           MotorGroup imiddleSideMotor,
+                                           MotorGroup irightSideMotor,
+                                           const double imaxVelocity,
+                                           const double imaxVoltage) {
+  return TrikeDriveModel(std::make_shared<MotorGroup>(ileftSideMotor),
+                        std::make_shared<MotorGroup>(imiddleSideMotor),
+                        std::make_shared<MotorGroup>(irightSideMotor),
+                        imaxVelocity,
+                        imaxVoltage);
+}
+
+TrikeDriveModel ChassisModelFactory::create(MotorGroup ileftSideMotor,
+                                           MotorGroup imiddleSideMotor,
+                                           MotorGroup irightSideMotor,
+                                           ADIEncoder ileftEnc,
+                                           ADIEncoder irightEnc,
+                                           const double imaxVelocity,
+                                           const double imaxVoltage) {
+  return TrikeDriveModel(std::make_shared<MotorGroup>(ileftSideMotor),
+                        std::make_shared<MotorGroup>(imiddleSideMotor),
+                        std::make_shared<MotorGroup>(irightSideMotor),
+                        std::make_shared<ADIEncoder>(ileftEnc),
+                        std::make_shared<ADIEncoder>(irightEnc),
+                        imaxVelocity,
+                        imaxVoltage);
+}
+
 XDriveModel ChassisModelFactory::create(Motor itopLeftMotor,
                                         Motor itopRightMotor,
                                         Motor ibottomRightMotor,

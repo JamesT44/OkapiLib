@@ -10,6 +10,7 @@
 #include "okapi/api/chassis/controller/chassisControllerIntegrated.hpp"
 #include "okapi/api/chassis/controller/chassisControllerPid.hpp"
 #include "okapi/api/chassis/model/skidSteerModel.hpp"
+#include "okapi/api/chassis/model/trikeDriveModel.hpp"
 #include "okapi/api/chassis/model/xDriveModel.hpp"
 #include "okapi/api/util/logging.hpp"
 #include "okapi/api/util/mathUtil.hpp"
@@ -56,6 +57,38 @@ class ChassisControllerBuilder {
    * @return An ongoing builder.
    */
   ChassisControllerBuilder &withMotors(const std::shared_ptr<AbstractMotor> &ileft,
+                                       const std::shared_ptr<AbstractMotor> &iright);
+  
+  /**
+   * Sets the motors using a trike-drive layout.
+   *
+   * @param ileft The left motor.
+   * @param imiddle The middle motor.
+   * @param iright The right motor.
+   * @return An ongoing builder.
+   */
+  ChassisControllerBuilder &withMotors(const Motor &ileft, const Motor &imiddle, const Motor &iright);
+
+  /**
+   * Sets the motors using a trike-drive layout.
+   *
+   * @param ileft The left motor.
+   * @param imiddle The middle motor.
+   * @param iright The right motor.
+   * @return An ongoing builder.
+   */
+  ChassisControllerBuilder &withMotors(const MotorGroup &ileft, const MotorGroup &imiddle, const MotorGroup &iright);
+
+  /**
+   * Sets the motors using a trike-drive layout.
+   *
+   * @param ileft The left motor.
+   * @param imiddle The middle motor.
+   * @param iright The right motor.
+   * @return An ongoing builder.
+   */
+  ChassisControllerBuilder &withMotors(const std::shared_ptr<AbstractMotor> &ileft,
+                                       const std::shared_ptr<AbstractMotor> &imiddle,
                                        const std::shared_ptr<AbstractMotor> &iright);
 
   /**
@@ -229,6 +262,12 @@ class ChassisControllerBuilder {
     std::shared_ptr<AbstractMotor> right;
   };
 
+  struct TrikeDriveMotors {
+    std::shared_ptr<AbstractMotor> left;
+    std::shared_ptr<AbstractMotor> middle;
+    std::shared_ptr<AbstractMotor> right;
+  };
+
   struct XDriveMotors {
     std::shared_ptr<AbstractMotor> topLeft;
     std::shared_ptr<AbstractMotor> topRight;
@@ -237,8 +276,9 @@ class ChassisControllerBuilder {
   };
 
   bool hasMotors{false};  // Used to verify motors were passed
-  bool isSkidSteer{true}; // Whether to use SkidSteerMotors or XDriveMotors
+  int driveType{0}; // Whether to use SkidSteerMotors or TrikeDriveMotors or XDriveMotors 
   SkidSteerMotors skidSteerMotors;
+  TrikeDriveMotors trikeDriveMotors;
   XDriveMotors xDriveMotors;
 
   bool sensorsSetByUser{false}; // Used so motors don't overwrite sensors set manually
@@ -266,6 +306,7 @@ class ChassisControllerBuilder {
   std::shared_ptr<ChassisControllerPID> buildCCPID();
   std::shared_ptr<ChassisControllerIntegrated> buildCCI();
   std::shared_ptr<SkidSteerModel> makeSkidSteerModel();
+  std::shared_ptr<TrikeDriveModel> makeTrikeDriveModel();
   std::shared_ptr<XDriveModel> makeXDriveModel();
 };
 } // namespace okapi
