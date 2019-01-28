@@ -143,12 +143,12 @@ void TrikeDriveModel::arcade(const double iforwardSpeed,
 
 void TrikeDriveModel::left(const double ispeed) const {
   leftSideMotor->moveVelocity(static_cast<int16_t>(std::clamp(ispeed, -1.0, 1.0) * maxVelocity));
-  middleSideMotor->moveVelocity(static_cast<int16_t>(std::clamp(ispeed, -1.0, 1.0) * maxVelocity * 0.5));
+  middleSideMotor->moveVelocity(static_cast<int16_t>((std::clamp(ispeed, -1.0, 1.0) * maxVelocity + rightSideMotor->getTargetVelocity()) * 0.5));
 }
 
 void TrikeDriveModel::right(const double ispeed) const {
   rightSideMotor->moveVelocity(static_cast<int16_t>(std::clamp(ispeed, -1.0, 1.0) * maxVelocity));
-  middleSideMotor->moveVelocity(static_cast<int16_t>(std::clamp(ispeed, -1.0, 1.0) * maxVelocity * 0.5));
+  middleSideMotor->moveVelocity(static_cast<int16_t>((std::clamp(ispeed, -1.0, 1.0) * maxVelocity + leftSideMotor->getTargetVelocity()) * 0.5));
 }
 
 std::valarray<std::int32_t> TrikeDriveModel::getSensorVals() const {
